@@ -23,7 +23,7 @@ router.post("/login", async (req,res) => {
     const { email , password} = req.body;
 
     if (email && password) {
-        conn.query("SELECT * FROM user WHERE email = ? AND password = ?",
+        conn.query("SELECT * FROM users WHERE email = ? AND password = ?",
             [ email , password ],
             (err,result) => {
                 if (err) { 
