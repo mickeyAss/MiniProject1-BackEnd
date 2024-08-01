@@ -31,16 +31,49 @@ router.post("/login", async (req,res) => {
                     return;
                 }
                 if (result.length == 0) {
-                    res.json({result: false, message: "Invalid email or password"});
+                    res.json({result: false, message: "no user found"});
                     return;
                 }
-                res.json({result: true, result});
+                var token = jwt.sign({ email: result[0].email }, secret);
+                res.json({result: true, message: 'Login successfully', result, token});
             }
         );
     } else {
         res.json({result: false,message: "Email and Password are required"});
     }
 })
+
+router.post('/register' ,async (req,res) => {
+    const {email ,password} = req.body;
+
+    conn.query('INSERT INTO users (email, password) VALUES (?, ?)',
+        [email, password],
+        function(err, result){
+            if (err) {
+                res.json({result: false, message: err});
+                return
+            }
+            res.json({result: true, message: 'ok'});
+        }
+    );
+});
+
+
+router.put('/register/:uid' ,async (req,res) => {
+    const { uid } = req.params;
+    const {name ,surname, phone, birthday, wallet} = req.body;
+
+    conn.query('UPDATE users SET name = ?, surname = ?, phone = ?, birthday = ?, wallet = ? WHERE uid = ?',
+        [name, surname, phone, birthday, wallet,uid],
+        function(err, result){
+            if (err) {
+                res.json({result: false, message: err});
+                return
+            }
+            res.json({result: true, message: 'User update successfully'});
+        }
+    );
+});
 
 
 module.exports = router;
