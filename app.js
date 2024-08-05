@@ -9,6 +9,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.text());
 
 app.use("/user",userRouter);
+app.use("/",userRouter);
 
 
 module.exports = app;

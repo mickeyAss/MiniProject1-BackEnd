@@ -4,6 +4,10 @@ var conn = require('../dbconnect')
 var jwt = require('jsonwebtoken');
 var secret = 'Fullstack-Login-2024';
 
+router.get("/", async (req,res) => {
+    res.json("Hello Word!!!");
+});
+
 router.get("/get", async (req, res) => {
     try {
         conn.query("SELECT * FROM users", (err, result) => {
@@ -74,6 +78,21 @@ router.put('/register/:uid' ,async (req,res) => {
         }
     );
 });
+
+router.put('/updatewallet/:uid' ,async (req,res)=>{
+    const { uid } = req.params;
+    const { wallet } = req.body;
+
+    conn.query('UPDATE users SET wallet = ? WHERE uid = ?',
+        [wallet,uid],
+        function(err,result){
+            if(err){
+                res.json({result: false, message: err});
+            }
+            res.json({result: true,message: 'Wallet update successfully'});
+        }
+    )
+})
 
 
 module.exports = router;
