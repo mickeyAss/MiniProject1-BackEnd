@@ -38,8 +38,8 @@ router.post("/login", async (req,res) => {
                     res.json({message: "no user found"});
                     return;
                 }
-                var token = jwt.sign({ email: result[0].email }, secret);
-                res.json({ message: 'Login successfully', result, token});
+               
+                res.json({ message: 'Login successfully', result});
             }
         );
     } else {
