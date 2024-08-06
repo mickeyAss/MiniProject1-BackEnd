@@ -39,7 +39,7 @@ router.post("/login", async (req,res) => {
                     return;
                 }
                
-                res.json({ message: 'Login successfully', result});
+                res.status(200).json({ message: 'Login successfully', result});
             }
         );
     } else {
