@@ -31,19 +31,19 @@ router.post("/login", async (req,res) => {
             [ email , password ],
             (err,result) => {
                 if (err) { 
-                    res.json({result: false,message: "Database error"});
+                    res.json({message: "Database error"});
                     return;
                 }
                 if (result.length == 0) {
-                    res.json({result: false, message: "no user found"});
+                    res.json({message: "no user found"});
                     return;
                 }
                 var token = jwt.sign({ email: result[0].email }, secret);
-                res.json({result: true, message: 'Login successfully', result, token});
+                res.json({ message: 'Login successfully', result, token});
             }
         );
     } else {
-        res.json({result: false,message: "Email and Password are required"});
+        res.json({message: "Email and Password are required"});
     }
 })
 
@@ -54,10 +54,10 @@ router.post('/register' ,async (req,res) => {
         [email, password],
         function(err, result){
             if (err) {
-                res.json({result: false, message: err});
+                res.json({message: err});
                 return
             }
-            res.json({result: true, message: 'ok'});
+            res.json({ message: 'ok'});
         }
     );
 });
