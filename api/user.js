@@ -65,10 +65,10 @@ router.post('/register' ,async (req,res) => {
 
 router.put('/register/:uid' ,async (req,res) => {
     const { uid } = req.params;
-    const {name ,surname, phone, birthday, wallet} = req.body;
+    const {name ,surname, phone,  wallet} = req.body;
 
-    conn.query('UPDATE users SET name = ?, surname = ?, phone = ?, birthday = ?, wallet = ? WHERE uid = ?',
-        [name, surname, phone, birthday, wallet,uid],
+    conn.query('UPDATE users SET name = ?, surname = ?, phone = ?, , wallet = ? WHERE uid = ?',
+        [name, surname, phone,  wallet,uid],
         function(err, result){
             if (err) {
                 res.json({result: false, message: err});
