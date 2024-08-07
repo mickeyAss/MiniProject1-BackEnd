@@ -48,10 +48,10 @@ router.post("/login", async (req,res) => {
 })
 
 router.post('/register' ,async (req,res) => {
-    const {email ,password} = req.body;
+    const {name,surname,email ,password,phone,wallet} = req.body;
 
-    conn.query('INSERT INTO users (email, password) VALUES (?, ?)',
-        [email, password],
+    conn.query('INSERT INTO users (name,surname,email ,password,phone,wallet) VALUES (?, ?,?,?,?,?)',
+        [name,surname,email ,password,phone,wallet],
         function(err, result){
             if (err) {
                 res.json({message: err});
