@@ -63,20 +63,47 @@ router.post('/register' ,async (req,res) => {
 });
 
 
-router.put('/register/:uid' ,async (req,res) => {
+router.put('/register/:uid', async (req, res) => {
     const { uid } = req.params;
-    const {name ,surname, phone,  wallet} = req.body;
+    const { name, surname, phone, wallet } = req.body;
 
-    conn.query('UPDATE users SET name = ?, surname = ?, phone = ? , wallet = ? WHERE uid = ?',
-        [name, surname, phone,  wallet,uid],
-        function(err, result){
-            if (err) {
-                res.json({result: false, message: err});
-                return
-            }
-            res.json({result: true, message: 'User update successfully'});
+    // สร้าง array สำหรับเก็บค่าที่จะถูกอัพเดต
+    let fields = [];
+    let values = [];
+
+    // ตรวจสอบและเพิ่ม field ที่ต้องการอัพเดต
+    if (name) {
+        fields.push('name = ?');
+        values.push(name);
+    }
+    if (surname) {
+        fields.push('surname = ?');
+        values.push(surname);
+    }
+    if (phone) {
+        fields.push('phone = ?');
+        values.push(phone);
+    }
+    if (wallet) {
+        fields.push('wallet = ?');
+        values.push(wallet);
+    }
+
+    // ถ้าไม่มี field ใดที่ต้องการอัพเดต ให้ส่ง response กลับโดยไม่ทำอะไร
+    if (fields.length === 0) {
+        return res.json({ result: false, message: 'No fields to update' });
+    }
+
+    // สร้าง query string สำหรับการอัพเดต
+    const query = `UPDATE users SET ${fields.join(', ')} WHERE uid = ?`;
+    values.push(uid);
+
+    conn.query(query, values, function (err, result) {
+        if (err) {
+            return res.json({ result: false, message: err });
         }
-    );
+        res.json({ result: true, message: 'User updated successfully' });
+    });
 });
 
 router.put('/updatewallet/:uid' ,async (req,res)=>{
