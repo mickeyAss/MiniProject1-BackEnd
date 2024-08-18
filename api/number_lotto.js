@@ -171,3 +171,23 @@ router.get('/searchnumber', async (req, res) => {
     }
 });
 
+router.get('/count-lottoid-with-uid', async (req, res) => {
+    try {
+        // สร้าง query เพื่อนับจำนวน lottoid ที่มี uid_fk ไม่เป็น null
+        const query = 'SELECT COUNT(lottoid) AS lottoid_count FROM numbers_lotto WHERE uid_fk IS NOT NULL';
+
+        conn.query(query, (err, results) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: 'An error occurred while counting lottoid' });
+            }
+
+            // ส่งจำนวนที่นับได้ในรูปแบบ JSON
+            res.status(200).json({ lottoid_count: results[0].lottoid_count });
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'An error occurred' });
+    }
+});
+
