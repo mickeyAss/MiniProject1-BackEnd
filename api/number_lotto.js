@@ -5,7 +5,7 @@ var conn = require('../dbconnect')
 module.exports = router;
 
 router.post("/insertnumber", async(req,res) => {
-    conn.query('INSERT INTO `number_lotto` (`number`) VALUES (?)',
+    conn.query('INSERT INTO `numbers_lotto` (`number`) VALUES (?)',
         [req.body.number],
         function(err,result){
             res.json(result);
@@ -14,7 +14,7 @@ router.post("/insertnumber", async(req,res) => {
 });
 
 router.delete("/deletenumber", (req, res) => {
-    conn.query('DELETE FROM `number_lotto`', (err, result) => {
+    conn.query('DELETE FROM `numbers_lotto`', (err, result) => {
         if (err) {
             console.error(err);
             res.status(500).json({ error: "An error occurred while deleting records" });
@@ -33,7 +33,7 @@ router.get("/getnumber", async (req, res) => {
         // เรียงลำดับจาก รางวัลที่ 1 ถึง รางวัลที่ 5
         const query = `
             SELECT * 
-            FROM number_lotto 
+            FROM numbers_lotto 
             WHERE result IN ('รางวัลที่ 1', 'รางวัลที่ 2', 'รางวัลที่ 3', 'รางวัลที่ 4', 'รางวัลที่ 5')
             ORDER BY 
                 CASE 
@@ -63,7 +63,7 @@ router.get("/getnumber", async (req, res) => {
 router.get("/getallnumber", async (req, res) => {
     try {
         // เรียกข้อมูลทั้งหมดจากตาราง number_lotto
-        conn.query('SELECT * FROM number_lotto', (err, results) => {
+        conn.query('SELECT * FROM numbers_lotto', (err, results) => {
             if (err) {
                 console.error(err);
                 return res.status(500).json({ error: "An error occurred while fetching data" });
@@ -84,7 +84,7 @@ router.put('/update-result', async (req, res) => {
 
         const checkExistingQuery = `
             SELECT COUNT(*) AS count
-            FROM number_lotto 
+            FROM numbers_lotto 
             WHERE result = ?
         `;
         
@@ -98,7 +98,7 @@ router.put('/update-result', async (req, res) => {
                 return res.status(400).send('Duplicate result detected.');
             }
 
-            const selectLidQuery = 'SELECT lottoid FROM number_lotto WHERE result = "ไม่ถูกรางวัล" ORDER BY RAND() LIMIT 1';
+            const selectLidQuery = 'SELECT lottoid FROM numbers_lotto WHERE result = "ไม่ถูกรางวัล" ORDER BY RAND() LIMIT 1';
             
             conn.query(selectLidQuery, (err, result) => {
                 if (err) {
@@ -113,7 +113,7 @@ router.put('/update-result', async (req, res) => {
                 const randomLid = result[0].lottoid;
 
                 // อัปเดตวันที่ในทุกแถวของตาราง
-                const updateAllQuery = 'UPDATE number_lotto SET update_date = ?';
+                const updateAllQuery = 'UPDATE numbers_lotto SET update_date = ?';
                 conn.query(updateAllQuery, [currentDate], (err, updateAllResult) => {
                     if (err) {
                         console.log(err);
@@ -121,7 +121,7 @@ router.put('/update-result', async (req, res) => {
                     }
 
                     // อัปเดตแถวที่สุ่มเลือกด้วยผลลัพธ์ใหม่และวันที่
-                    const updateQuery = 'UPDATE number_lotto SET result = ?, update_date = ? WHERE lottoid = ?';
+                    const updateQuery = 'UPDATE numbers_lotto SET result = ?, update_date = ? WHERE lottoid = ?';
                     conn.query(updateQuery, [newResult, currentDate, randomLid], (err, updateResult) => {
                         if (err) {
                             console.log(err);
@@ -149,7 +149,7 @@ router.get('/searchnumber', async (req, res) => {
         }
 
         // สร้าง query เพื่อค้นหาหมายเลขที่ระบุ
-        const query = 'SELECT * FROM number_lotto WHERE number = ?';
+        const query = 'SELECT * FROM numbers_lotto WHERE number = ?';
 
         conn.query(query, [number], (err, results) => {
             if (err) {
