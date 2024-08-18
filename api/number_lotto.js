@@ -139,3 +139,35 @@ router.put('/update-result', async (req, res) => {
     }
 });
 
+router.get('/searchnumber', async (req, res) => {
+    try {
+        // ตรวจสอบว่ามี query parameter `number` หรือไม่
+        const { number } = req.query;
+
+        if (!number) {
+            return res.status(400).json({ error: 'Missing `number` query parameter' });
+        }
+
+        // สร้าง query เพื่อค้นหาหมายเลขที่ระบุ
+        const query = 'SELECT * FROM number_lotto WHERE number = ?';
+
+        conn.query(query, [number], (err, results) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: 'An error occurred while searching for the number' });
+            }
+
+            if (results.length === 0) {
+                // ไม่มีข้อมูลที่ตรงกับหมายเลขที่ค้นหา
+                return res.status(404).json({ message: 'Number not found' });
+            }
+
+            // ส่งข้อมูลที่ค้นพบในรูปแบบ JSON
+            res.status(200).json(results);
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'An error occurred' });
+    }
+});
+
