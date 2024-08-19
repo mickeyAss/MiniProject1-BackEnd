@@ -98,7 +98,14 @@ router.get('/check-uidfk/:uid', async (req, res) => {
     const { uid } = req.params;
 
     try {
-        conn.query("SELECT * FROM numbers_lotto WHERE uid_fk = ?", [uid], (err, result) => {
+        const query = `
+            SELECT u.*, n.* 
+            FROM users_lotto u
+            JOIN numbers_lotto n ON u.uid = n.uid_fk
+            WHERE u.uid = ?
+        `;
+
+        conn.query(query, [uid], (err, result) => {
             if (err) {
                 console.log(err);
                 return res.status(400).json({ error: 'Query error' });
@@ -106,7 +113,7 @@ router.get('/check-uidfk/:uid', async (req, res) => {
             if (result.length === 0) {
                 return res.status(404).json({ message: 'No matching rows found' });
             }
-            res.status(200).json({  result });
+            res.status(200).json({ result });
         });
     } catch (err) {
         console.log(err);
