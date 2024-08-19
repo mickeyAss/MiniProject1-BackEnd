@@ -94,5 +94,24 @@ router.put('/updatewallet/:uid', async (req, res) => {
     )
 })
 
+router.get('/check-uidfk/:uid', async (req, res) => {
+    const { uid } = req.params;
+
+    try {
+        conn.query("SELECT * FROM numbers_lotto WHERE uid_fk = ?", [uid], (err, result) => {
+            if (err) {
+                console.log(err);
+                return res.status(400).json({ error: 'Query error' });
+            }
+            if (result.length === 0) {
+                return res.status(404).json({ message: 'No matching rows found' });
+            }
+            res.status(200).json({ message: 'Rows found', data: result });
+        });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({ error: 'Server error' });
+    }
+});
 
 module.exports = router;
