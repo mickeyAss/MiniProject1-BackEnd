@@ -80,7 +80,6 @@ router.get("/getallnumber", async (req, res) => {
 router.put('/update-result', async (req, res) => {
     try {
         const newResult = req.body.result; 
-        const currentDate = new Date().toISOString().slice(0, 19).replace('T', ' '); // แปลงวันที่ให้เป็นรูปแบบที่ MySQL รองรับ
 
         const checkExistingQuery = `
             SELECT COUNT(*) AS count
@@ -112,24 +111,15 @@ router.put('/update-result', async (req, res) => {
 
                 const randomLid = result[0].lottoid;
 
-                // อัปเดตวันที่ในทุกแถวของตาราง
-                const updateAllQuery = 'UPDATE numbers_lotto SET update_date = ?';
-                conn.query(updateAllQuery, [currentDate], (err, updateAllResult) => {
+                // อัปเดตแถวที่สุ่มเลือกด้วยผลลัพธ์ใหม่
+                const updateQuery = 'UPDATE numbers_lotto SET result = ? WHERE lottoid = ?';
+                conn.query(updateQuery, [newResult, randomLid], (err, updateResult) => {
                     if (err) {
                         console.log(err);
-                        return res.status(400).send('Error updating all rows with the current date');
+                        return res.status(400).send('Error updating result');
                     }
 
-                    // อัปเดตแถวที่สุ่มเลือกด้วยผลลัพธ์ใหม่และวันที่
-                    const updateQuery = 'UPDATE numbers_lotto SET result = ?, update_date = ? WHERE lottoid = ?';
-                    conn.query(updateQuery, [newResult, currentDate, randomLid], (err, updateResult) => {
-                        if (err) {
-                            console.log(err);
-                            return res.status(400).send('Error updating result');
-                        }
-
-                        res.status(200).send(`Updated lottoid ${randomLid} with result ${newResult} and update date ${currentDate}`);
-                    });
+                    res.status(200).send(`Updated lottoid ${randomLid} with result ${newResult}`);
                 });
             });
         });
@@ -185,6 +175,31 @@ router.get('/count-lottoid-with-uid', async (req, res) => {
 
             // ส่งจำนวนที่นับได้ในรูปแบบ JSON
             res.status(200).json({ lottoid_count: results[0].lottoid_count });
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'An error occurred' });
+    }
+});
+
+// ดึงข้อมูลวันที่ทั้งหมดจาก update_date และจัดการให้ไม่มีวันที่ซ้ำกัน
+router.get('/get-distinct-update-dates', async (req, res) => {
+    try {
+        // สร้าง query เพื่อดึงเฉพาะวันที่จากคอลัมน์ update_date และเอาเฉพาะวันที่ที่ไม่ซ้ำ
+        const query = `
+            SELECT DISTINCT DATE(update_date) AS date_only
+            FROM numbers_lotto
+            ORDER BY date_only
+        `;
+
+        conn.query(query, (err, results) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: 'An error occurred while fetching distinct update dates' });
+            }
+
+            // ส่งข้อมูลที่ดึงมาในรูปแบบ JSON
+            res.status(200).json(results.map(row => ({ date_only: row.date_only.toISOString().split('T')[0] })));
         });
     } catch (err) {
         console.error(err);
