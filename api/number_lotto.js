@@ -181,3 +181,30 @@ router.get('/count-lottoid-with-uid', async (req, res) => {
         res.status(500).json({ error: 'An error occurred' });
     }
 });
+
+router.put('/update-uid-fk', async (req, res) => {
+    try {
+        const { lottoid, uid_fk } = req.body;
+
+        if (!lottoid || !uid_fk) {
+            return res.status(400).json({ error: 'Missing `lottoid` or `uid_fk` in request body' });
+        }
+
+        const updateQuery = 'UPDATE numbers_lotto SET uid_fk = ? WHERE lottoid = ?';
+        conn.query(updateQuery, [uid_fk, lottoid], (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: 'An error occurred while updating uid_fk' });
+            }
+
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ message: 'No record found with the specified lottoid' });
+            }
+
+            res.status(200).json({ message: `Updated lottoid ${lottoid} with uid_fk ${uid_fk}` });
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
