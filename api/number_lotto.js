@@ -148,10 +148,11 @@ router.get('/searchnumber', async (req, res) => {
             return res.status(400).json({ error: 'Missing `number` query parameter' });
         }
 
-        // สร้าง query เพื่อค้นหาหมายเลขที่ระบุ
-        const query = 'SELECT * FROM numbers_lotto WHERE number = ?';
+        // สร้าง query เพื่อค้นหาหมายเลขที่ระบุด้วยการจับคู่บางส่วน
+        const query = 'SELECT * FROM numbers_lotto WHERE number LIKE ?';
+        const searchTerm = `%${number}%`; // ค้นหาหมายเลขที่มีค่าของ `number` อยู่ภายใน
 
-        conn.query(query, [number], (err, results) => {
+        conn.query(query, [searchTerm], (err, results) => {
             if (err) {
                 console.error(err);
                 return res.status(500).json({ error: 'An error occurred while searching for the number' });
