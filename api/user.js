@@ -113,7 +113,7 @@ router.get('/check-uidfk/:uid', async (req, res) => {
             if (result.length === 0) {
                 return res.status(404).json({ message: 'No matching rows found' });
             }
-            res.status(200).json({ result });
+            res.status(200).json(result );
         });
     } catch (err) {
         console.log(err);
