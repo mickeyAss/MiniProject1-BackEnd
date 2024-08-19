@@ -181,29 +181,3 @@ router.get('/count-lottoid-with-uid', async (req, res) => {
         res.status(500).json({ error: 'An error occurred' });
     }
 });
-
-// ดึงข้อมูลวันที่ทั้งหมดจาก update_date และจัดการให้ไม่มีวันที่ซ้ำกัน
-router.get('/get-distinct-update-dates', async (req, res) => {
-    try {
-        // สร้าง query เพื่อดึงเฉพาะวันที่จากคอลัมน์ update_date และเอาเฉพาะวันที่ที่ไม่ซ้ำ
-        const query = `
-            SELECT DISTINCT DATE(update_date) AS date_only
-            FROM numbers_lotto
-            ORDER BY date_only
-        `;
-
-        conn.query(query, (err, results) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ error: 'An error occurred while fetching distinct update dates' });
-            }
-
-            // ส่งข้อมูลที่ดึงมาในรูปแบบ JSON
-            res.status(200).json(results.map(row => ({ date_only: row.date_only.toISOString().split('T')[0] })));
-        });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'An error occurred' });
-    }
-});
-
