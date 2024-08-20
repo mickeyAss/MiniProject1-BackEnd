@@ -210,13 +210,11 @@ router.get('/searchresult', (req, res) => {
                     prizeAmount = 0; // ถ้าไม่ตรงกับรางวัลที่กำหนด
             }
 
-            // เพิ่ม prizeAmount ลงในผลลัพธ์
-            const resultWithPrizeAmount = result.map(entry => ({
-                ...entry,
-                prizeAmount: prizeAmount
-            }));
-
-            res.status(200).json(resultWithPrizeAmount);
+            res.status(200).json({
+                message: prize ,
+               result,
+            prizeAmount
+            }, );
         });
     } catch (err) {
         console.log(err);
