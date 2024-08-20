@@ -284,79 +284,75 @@ router.get('/check-uidfk/:uid/:lottoid', (req, res) => {
     }
 });
 
-router.post('/update-wallet/:uid', (req, res) => {
-    const { uid } = req.params;
-    const { prizeAmount, lottoid } = req.body;
+router.post('/update-wallet/:uid/:lottoid', (req, res) => {
+    const { uid, lottoid } = req.params;
+    const { prizeAmount } = req.body;
 
-    // ตรวจสอบว่ามี uid และ lottoid หรือไม่
+    // ตรวจสอบว่ามี uid หรือไม่
     if (!uid) {
         return res.status(400).json({ error: 'Uid parameter is required' });
     }
+    // ตรวจสอบว่ามี lottoid หรือไม่
+    if (!lottoid) {
+        return res.status(400).json({ error: 'Lottoid parameter is required' });
+    }
+    // ตรวจสอบว่าได้รับ prizeAmount จาก request body หรือไม่
     if (prizeAmount === undefined || prizeAmount === null) {
         return res.status(400).json({ error: 'prizeAmount parameter is required in request body' });
     }
-    if (!lottoid) {
-        return res.status(400).json({ error: 'Lottoid parameter is required in request body' });
-    }
 
-    try {
-        // Query เพื่อดึงค่า wallet ตาม uid
-        const getWalletQuery = `
-            SELECT wallet 
-            FROM users_lotto 
+    // ดึงค่า wallet และอัปเดต
+    const getWalletQuery = `
+        SELECT wallet 
+        FROM users_lotto 
+        WHERE uid = ?
+    `;
+    
+    conn.query(getWalletQuery, [uid], (err, result) => {
+        if (err) {
+            console.log('Error fetching wallet:', err);
+            return res.status(400).json({ error: 'Query error' });
+        }
+        if (result.length === 0) {
+            return res.status(404).json({ message: 'No user found with the given uid' });
+        }
+
+        const currentWallet = parseFloat(result[0].wallet);
+        const newWallet = currentWallet + parseFloat(prizeAmount);
+
+        // อัปเดต wallet
+        const updateWalletQuery = `
+            UPDATE users_lotto 
+            SET wallet = ? 
             WHERE uid = ?
         `;
         
-        conn.query(getWalletQuery, [uid], (err, result) => {
+        conn.query(updateWalletQuery, [newWallet, uid], (err) => {
             if (err) {
-                console.log(err);
-                return res.status(400).json({ error: 'Query error' });
-            }
-            if (result.length === 0) {
-                return res.status(404).json({ message: 'No user found with the given uid' });
+                console.log('Error updating wallet:', err);
+                return res.status(400).json({ error: 'Update query error' });
             }
 
-            // ดึงค่า wallet จากผลลัพธ์
-            const currentWallet = parseFloat(result[0].wallet);
-            const newWallet = currentWallet + parseFloat(prizeAmount);
-
-            // Query เพื่ออัปเดตค่า wallet
-            const updateWalletQuery = `
-                UPDATE users_lotto 
-                SET wallet = ? 
-                WHERE uid = ?
+            // อัปเดตสถานะใน numbers_lotto
+            const updateStatusQuery = `
+                UPDATE numbers_lotto 
+                SET status = 'ขึ้นเงินแล้ว' 
+                WHERE lottoid = ?
             `;
             
-            conn.query(updateWalletQuery, [newWallet, uid], (err) => {
+            conn.query(updateStatusQuery, [lottoid], (err) => {
                 if (err) {
-                    console.log(err);
-                    return res.status(400).json({ error: 'Update query error' });
+                    console.log('Error updating status:', err);
+                    return res.status(400).json({ error: 'Status update query error' });
                 }
 
-                // Query เพื่ออัปเดตสถานะในเทเบิ้ล numbers_lotto
-                const updateStatusQuery = `
-                    UPDATE numbers_lotto 
-                    SET status = 'ขึ้นรางวัลแล้ว' 
-                    WHERE uid_fk = ? AND lottoid = ?
-                `;
-                
-                conn.query(updateStatusQuery, [uid, lottoid], (err) => {
-                    if (err) {
-                        console.log(err);
-                        return res.status(400).json({ error: 'Status update query error' });
-                    }
-
-                    res.status(200).json({
-                        message: 'Wallet and status updated successfully',
-                        newWallet
-                    });
+                res.status(200).json({
+                    message: 'Wallet and status updated successfully',
+                    newWallet
                 });
             });
         });
-    } catch (err) {
-        console.log(err);
-        return res.status(500).json({ error: 'Server error' });
-    }
+    });
 });
 
 
