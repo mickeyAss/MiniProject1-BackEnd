@@ -170,13 +170,12 @@ router.get('/searchresult', (req, res) => {
 
     try {
         const query = `
-            SELECT u.*, n.*
+            SELECT u.*, n.*, n.result AS prize
             FROM users_lotto u
             JOIN numbers_lotto n ON u.uid = n.uid_fk
             WHERE n.number = ? AND u.uid = ?
         `;
 
-        // ใช้ '=' เพื่อค้นหาหมายเลขที่ตรงกับตัวเลขที่ระบุโดยตรง
         conn.query(query, [number, uid], (err, result) => {
             if (err) {
                 console.log(err);
@@ -185,7 +184,14 @@ router.get('/searchresult', (req, res) => {
             if (result.length === 0) {
                 return res.status(404).json({ message: 'No matching numbers found' });
             }
-            res.status(200).json(result);
+
+            // Extract the result/prize information
+            const prize = result[0].prize;  // Assuming result contains at least one entry
+
+            res.status(200).json({
+                message: prize ? `${prize}` : 'No prize information available',
+                data: result
+            });
         });
     } catch (err) {
         console.log(err);
