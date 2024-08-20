@@ -210,11 +210,13 @@ router.get('/searchresult', (req, res) => {
                     prizeAmount = 0; // ถ้าไม่ตรงกับรางวัลที่กำหนด
             }
 
-            res.status(200).json({
-                message: prize ? `${prize}` : 'No prize information available',
-                result,
-                prizeAmount
-            });
+            // เพิ่ม prizeAmount ลงในผลลัพธ์
+            const resultWithPrizeAmount = result.map(entry => ({
+                ...entry,
+                prizeAmount: prizeAmount
+            }));
+
+            res.status(200).json(resultWithPrizeAmount);
         });
     } catch (err) {
         console.log(err);
