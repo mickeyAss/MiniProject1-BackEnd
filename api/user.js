@@ -222,4 +222,66 @@ router.get('/searchresult', (req, res) => {
     }
 });
 
+router.get('/check-uidfk/:uid/:lottoid', (req, res) => {
+    const { uid, lottoid } = req.params;
+
+    // ตรวจสอบว่ามี uid และ lottoid หรือไม่
+    if (!uid || !lottoid) {
+        return res.status(400).json({ error: 'Uid and lottoid parameters are required' });
+    }
+
+    try {
+        const query = `
+            SELECT u.*, n.*, n.result AS prize
+            FROM users_lotto u
+            JOIN numbers_lotto n ON u.uid = n.uid_fk
+            WHERE u.uid = ? AND n.lottoid = ?
+        `;
+
+        conn.query(query, [uid, lottoid], (err, result) => {
+            if (err) {
+                console.log(err);
+                return res.status(400).json({ error: 'Query error' });
+            }
+            if (result.length === 0) {
+                return res.status(404).json({ message: 'No matching numbers found' });
+            }
+
+            // Extract the result/prize information
+            const prize = result[0].prize;  // Assuming result contains at least one entry
+            let prizeAmount = 0;
+
+            // กำหนดเงินรางวัลตามประเภทของรางวัล
+            switch (prize) {
+                case 'รางวัลที่ 1':
+                    prizeAmount = 60000000;
+                    break;
+                case 'รางวัลที่ 2':
+                    prizeAmount = 2000000;
+                    break;
+                case 'รางวัลที่ 3':
+                    prizeAmount = 800000;
+                    break;
+                case 'รางวัลที่ 4':
+                    prizeAmount = 400000;
+                    break;
+                case 'รางวัลที่ 5':
+                    prizeAmount = 200000;
+                    break;
+                default:
+                    prizeAmount = 0; // ถ้าไม่ตรงกับรางวัลที่กำหนด
+            }
+
+            res.status(200).json({
+                message: prize,
+                result,
+                prizeAmount
+            });
+        });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({ error: 'Server error' });
+    }
+});
+
 module.exports = router;
