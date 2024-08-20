@@ -187,10 +187,33 @@ router.get('/searchresult', (req, res) => {
 
             // Extract the result/prize information
             const prize = result[0].prize;  // Assuming result contains at least one entry
+            let prizeAmount = 0;
+
+            // กำหนดเงินรางวัลตามประเภทของรางวัล
+            switch (prize) {
+                case 'รางวัลที่ 1':
+                    prizeAmount = 60000000;
+                    break;
+                case 'รางวัลที่ 2':
+                    prizeAmount = 2000000;
+                    break;
+                case 'รางวัลที่ 3':
+                    prizeAmount = 800000;
+                    break;
+                case 'รางวัลที่ 4':
+                    prizeAmount = 400000;
+                    break;
+                case 'รางวัลที่ 5':
+                    prizeAmount = 200000;
+                    break;
+                default:
+                    prizeAmount = 0; // ถ้าไม่ตรงกับรางวัลที่กำหนด
+            }
 
             res.status(200).json({
                 message: prize ? `${prize}` : 'No prize information available',
-                data: result
+                result,
+                prizeAmount
             });
         });
     } catch (err) {
