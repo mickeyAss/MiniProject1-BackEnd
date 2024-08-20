@@ -284,4 +284,64 @@ router.get('/check-uidfk/:uid/:lottoid', (req, res) => {
     }
 });
 
+router.post('/update-wallet/:uid', (req, res) => {
+    const { uid } = req.params;
+
+    // ตรวจสอบว่ามี uid หรือไม่
+    if (!uid) {
+        return res.status(400).json({ error: 'Uid parameter is required' });
+    }
+
+    // ตรวจสอบว่าได้รับ prizeAmount จาก request body หรือไม่
+    const { prizeAmount } = req.body;
+    if (prizeAmount === undefined || prizeAmount === null) {
+        return res.status(400).json({ error: 'prizeAmount parameter is required in request body' });
+    }
+
+    try {
+        // Query เพื่อดึงค่า wallet ตาม uid
+        const getWalletQuery = `
+            SELECT wallet 
+            FROM users_lotto 
+            WHERE uid = ?
+        `;
+        
+        conn.query(getWalletQuery, [uid], (err, result) => {
+            if (err) {
+                console.log(err);
+                return res.status(400).json({ error: 'Query error' });
+            }
+            if (result.length === 0) {
+                return res.status(404).json({ message: 'No user found with the given uid' });
+            }
+
+            // ดึงค่า wallet จากผลลัพธ์
+            const currentWallet = parseFloat(result[0].wallet);
+            const newWallet = currentWallet + parseFloat(prizeAmount);
+
+            // Query เพื่ออัปเดตค่า wallet
+            const updateWalletQuery = `
+                UPDATE users_lotto 
+                SET wallet = ? 
+                WHERE uid = ?
+            `;
+            
+            conn.query(updateWalletQuery, [newWallet, uid], (err) => {
+                if (err) {
+                    console.log(err);
+                    return res.status(400).json({ error: 'Update query error' });
+                }
+
+                res.status(200).json({
+                    message: 'Wallet updated successfully',
+                    newWallet
+                });
+            });
+        });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({ error: 'Server error' });
+    }
+});
+
 module.exports = router;
