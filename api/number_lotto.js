@@ -182,7 +182,7 @@ router.get('/count-lottoid-with-uid',(req, res) => {
     }
 });
 
-router.put('/update-uid-fk',  (req, res) => {
+router.put('/update-uid-fk', (req, res) => {
     try {
         const { lottoid, uid_fk } = req.body;
 
@@ -190,18 +190,83 @@ router.put('/update-uid-fk',  (req, res) => {
             return res.status(400).json({ error: 'Missing `lottoid` or `uid_fk` in request body' });
         }
 
-        const updateQuery = 'UPDATE numbers_lotto SET uid_fk = ? WHERE lottoid = ?';
-        conn.query(updateQuery, [uid_fk, lottoid], (err, result) => {
+        // เริ่มต้น transaction
+        conn.beginTransaction(err => {
             if (err) {
                 console.error(err);
-                return res.status(500).json({ error: 'An error occurred while updating uid_fk' });
+                return res.status(500).json({ error: 'An error occurred while starting transaction' });
             }
 
-            if (result.affectedRows === 0) {
-                return res.status(404).json({ message: 'No record found with the specified lottoid' });
-            }
+            const updateLottoQuery = `
+                UPDATE numbers_lotto nl
+                SET nl.uid_fk = ?
+                WHERE nl.lottoid = ?;
+            `;
 
-            res.status(200).json({ message: `Updated lottoid ${lottoid} with uid_fk ${uid_fk}` });
+            conn.query(updateLottoQuery, [uid_fk, lottoid], (err, result) => {
+                if (err) {
+                    return conn.rollback(() => {
+                        console.error(err);
+                        res.status(500).json({ error: 'An error occurred while updating uid_fk' });
+                    });
+                }
+
+                if (result.affectedRows === 0) {
+                    return conn.rollback(() => {
+                        res.status(404).json({ message: 'No record found with the specified lottoid' });
+                    });
+                }
+
+                const selectWalletQuery = `
+                    SELECT wallet
+                    FROM users_lotto
+                    WHERE uid = ?;
+                `;
+
+                conn.query(selectWalletQuery, [uid_fk], (err, results) => {
+                    if (err) {
+                        return conn.rollback(() => {
+                            console.error(err);
+                            res.status(500).json({ error: 'An error occurred while retrieving wallet data' });
+                        });
+                    }
+
+                    if (results.length === 0) {
+                        return conn.rollback(() => {
+                            res.status(404).json({ message: 'No user found with the specified uid' });
+                        });
+                    }
+
+                    const currentWallet = results[0].wallet;
+                    const newWallet = currentWallet - 80;
+
+                    const updateWalletQuery = `
+                        UPDATE users_lotto
+                        SET wallet = ?
+                        WHERE uid = ?;
+                    `;
+
+                    conn.query(updateWalletQuery, [newWallet, uid_fk], (err, result) => {
+                        if (err) {
+                            return conn.rollback(() => {
+                                console.error(err);
+                                res.status(500).json({ error: 'An error occurred while updating wallet' });
+                            });
+                        }
+
+                        conn.commit(err => {
+                            if (err) {
+                                return conn.rollback(() => {
+                                    console.error(err);
+                                    res.status(500).json({ error: 'An error occurred while committing transaction' });
+                                });
+                            }
+
+                            res.status(200).json({ message: `Updated lottoid ${lottoid} with uid_fk ${uid_fk} and wallet updated to ${newWallet}` });
+                        });
+                    });
+                });
+            });
         });
     } catch (err) {
         console.error(err);
