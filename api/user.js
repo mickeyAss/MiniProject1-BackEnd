@@ -286,16 +286,17 @@ router.get('/check-uidfk/:uid/:lottoid', (req, res) => {
 
 router.post('/update-wallet/:uid', (req, res) => {
     const { uid } = req.params;
+    const { prizeAmount, lottoid } = req.body;
 
-    // ตรวจสอบว่ามี uid หรือไม่
+    // ตรวจสอบว่ามี uid และ lottoid หรือไม่
     if (!uid) {
         return res.status(400).json({ error: 'Uid parameter is required' });
     }
-
-    // ตรวจสอบว่าได้รับ prizeAmount จาก request body หรือไม่
-    const { prizeAmount } = req.body;
     if (prizeAmount === undefined || prizeAmount === null) {
         return res.status(400).json({ error: 'prizeAmount parameter is required in request body' });
+    }
+    if (!lottoid) {
+        return res.status(400).json({ error: 'Lottoid parameter is required in request body' });
     }
 
     try {
@@ -332,9 +333,23 @@ router.post('/update-wallet/:uid', (req, res) => {
                     return res.status(400).json({ error: 'Update query error' });
                 }
 
-                res.status(200).json({
-                    message: 'Wallet updated successfully',
-                    newWallet
+                // Query เพื่ออัปเดตสถานะในเทเบิ้ล numbers_lotto
+                const updateStatusQuery = `
+                    UPDATE numbers_lotto 
+                    SET status = 'ขึ้นรางวัลแล้ว' 
+                    WHERE uid_fk = ? AND lottoid = ?
+                `;
+                
+                conn.query(updateStatusQuery, [uid, lottoid], (err) => {
+                    if (err) {
+                        console.log(err);
+                        return res.status(400).json({ error: 'Status update query error' });
+                    }
+
+                    res.status(200).json({
+                        message: 'Wallet and status updated successfully',
+                        newWallet
+                    });
                 });
             });
         });
@@ -343,5 +358,6 @@ router.post('/update-wallet/:uid', (req, res) => {
         return res.status(500).json({ error: 'Server error' });
     }
 });
+
 
 module.exports = router;
