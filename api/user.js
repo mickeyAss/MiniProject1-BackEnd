@@ -257,16 +257,16 @@ router.get('/check-uidfk/:uid/:lottoid', (req, res) => {
                     prizeAmount = 60000000;
                     break;
                 case 'รางวัลที่ 2':
-                    prizeAmount = 2000000;
+                    prizeAmount = 200000;
                     break;
                 case 'รางวัลที่ 3':
-                    prizeAmount = 800000;
+                    prizeAmount = 80000;
                     break;
                 case 'รางวัลที่ 4':
-                    prizeAmount = 400000;
+                    prizeAmount = 40000;
                     break;
                 case 'รางวัลที่ 5':
-                    prizeAmount = 200000;
+                    prizeAmount = 20000;
                     break;
                 default:
                     prizeAmount = 0; // ถ้าไม่ตรงกับรางวัลที่กำหนด
