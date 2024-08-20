@@ -181,7 +181,6 @@ router.get('/count-lottoid-with-uid',(req, res) => {
         res.status(500).json({ error: 'An error occurred' });
     }
 });
-
 router.put('/update-uid-fk', (req, res) => {
     try {
         const { lottoid, uid_fk } = req.body;
@@ -238,6 +237,13 @@ router.put('/update-uid-fk', (req, res) => {
                     }
 
                     const currentWallet = results[0].wallet;
+
+                    if (currentWallet < 80) {
+                        return conn.rollback(() => {
+                            res.status(400).json({ message: 'กรุณาเติมเงิน' });
+                        });
+                    }
+
                     const newWallet = currentWallet - 80;
 
                     const updateWalletQuery = `
