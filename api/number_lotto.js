@@ -4,7 +4,7 @@ var conn = require('../dbconnect')
 
 module.exports = router;
 
-router.post("/insertnumber", async(req,res) => {
+router.post("/insertnumber", (req,res) => {
     conn.query('INSERT INTO `numbers_lotto` (`number`) VALUES (?)',
         [req.body.number],
         function(err,result){
@@ -28,7 +28,7 @@ router.delete("/deletenumber", (req, res) => {
     });
 });
 
-router.get("/getnumber", async (req, res) => {
+router.get("/getnumber", (req, res) => {
     try {
         // เรียงลำดับจาก รางวัลที่ 1 ถึง รางวัลที่ 5
         const query = `
@@ -60,7 +60,7 @@ router.get("/getnumber", async (req, res) => {
     }
 });
 
-router.get("/getallnumber", async (req, res) => {
+router.get("/getallnumber", (req, res) => {
     try {
         // เรียกข้อมูลทั้งหมดจากตาราง number_lotto
         conn.query('SELECT * FROM numbers_lotto', (err, results) => {
@@ -77,7 +77,7 @@ router.get("/getallnumber", async (req, res) => {
     }
 });
 
-router.put('/update-result', async (req, res) => {
+router.put('/update-result', (req, res) => {
     try {
         const newResult = req.body.result; 
 
@@ -129,7 +129,7 @@ router.put('/update-result', async (req, res) => {
     }
 });
 
-router.get('/searchnumber', async (req, res) => {
+router.get('/searchnumber',(req, res) => {
     try {
         // ตรวจสอบว่ามี query parameter `number` หรือไม่
         const { number } = req.query;
@@ -162,7 +162,7 @@ router.get('/searchnumber', async (req, res) => {
     }
 });
 
-router.get('/count-lottoid-with-uid', async (req, res) => {
+router.get('/count-lottoid-with-uid',(req, res) => {
     try {
         // สร้าง query เพื่อนับจำนวน lottoid ที่มี uid_fk ไม่เป็น null
         const query = 'SELECT COUNT(lottoid) AS lottoid_count FROM numbers_lotto WHERE uid_fk IS NOT NULL';
@@ -182,7 +182,7 @@ router.get('/count-lottoid-with-uid', async (req, res) => {
     }
 });
 
-router.put('/update-uid-fk', async (req, res) => {
+router.put('/update-uid-fk',  (req, res) => {
     try {
         const { lottoid, uid_fk } = req.body;
 

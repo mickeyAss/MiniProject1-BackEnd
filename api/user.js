@@ -8,7 +8,7 @@ router.get("/", async (req, res) => {
     res.json("Hello Word!!!");
 });
 
-router.get("/get/:uid", async (req, res) => {
+router.get("/get/:uid", (req, res) => {
     const { uid } = req.params; // รับค่า uid จากพารามิเตอร์
 
     try {
@@ -28,7 +28,7 @@ router.get("/get/:uid", async (req, res) => {
     }
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login",(req, res) => {
     const { phone, password } = req.body;
 
     if (phone && password) {
@@ -63,7 +63,7 @@ router.post("/login", async (req, res) => {
     }
 })
 
-router.post('/register', async (req, res) => {
+router.post('/register',(req, res) => {
     const { name, surname, email, password, phone, wallet } = req.body;
 
     conn.query('INSERT INTO users_lotto (name,surname,email ,password,phone,wallet,type) VALUES (?, ?,?,?,?,?,?)',
@@ -79,7 +79,7 @@ router.post('/register', async (req, res) => {
 });
 
 
-router.put('/updatewallet/:uid', async (req, res) => {
+router.put('/updatewallet/:uid', (req, res) => {
     const { uid } = req.params;
     const { wallet } = req.body;
 
@@ -94,7 +94,7 @@ router.put('/updatewallet/:uid', async (req, res) => {
     )
 })
 
-router.get('/check-uidfk/:uid', async (req, res) => {
+router.get('/check-uidfk/:uid', (req, res) => {
     const { uid } = req.params;
 
     try {
@@ -121,7 +121,7 @@ router.get('/check-uidfk/:uid', async (req, res) => {
     }
 });
 
-router.get('/searchnumber', async (req, res) => {
+router.get('/searchnumber',  (req, res) => {
     const { number, uid } = req.query;
 
     // ตรวจสอบว่ามีเลขลอตเตอรี่และไอดีหรือไม่
