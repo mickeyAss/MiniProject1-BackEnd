@@ -155,4 +155,42 @@ router.get('/searchnumber',  (req, res) => {
     }
 });
 
+router.get('/searchresult', (req, res) => {
+    const { number, uid } = req.query;
+
+    // ตรวจสอบว่ามีเลขลอตเตอรี่และไอดีหรือไม่
+    if (!number || !uid) {
+        return res.status(400).json({ error: 'Number and uid parameters are required' });
+    }
+
+    // ตรวจสอบว่าเลขลอตเตอรี่มีความยาว 6 ตัว
+    if (number.length !== 6) {
+        return res.status(400).json({ error: 'Number must be exactly 6 digits' });
+    }
+
+    try {
+        const query = `
+            SELECT u.*, n.*
+            FROM users_lotto u
+            JOIN numbers_lotto n ON u.uid = n.uid_fk
+            WHERE n.number = ? AND u.uid = ?
+        `;
+
+        // ใช้ '=' เพื่อค้นหาหมายเลขที่ตรงกับตัวเลขที่ระบุโดยตรง
+        conn.query(query, [number, uid], (err, result) => {
+            if (err) {
+                console.log(err);
+                return res.status(400).json({ error: 'Query error' });
+            }
+            if (result.length === 0) {
+                return res.status(404).json({ message: 'No matching numbers found' });
+            }
+            res.status(200).json(result);
+        });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({ error: 'Server error' });
+    }
+});
+
 module.exports = router;
