@@ -63,15 +63,16 @@ router.post("/login",(req, res) => {
     }
 })
 
-router.post('/register',(req, res) => {
+router.post('/register', (req, res) => {
     const { name, surname, email, password, phone, wallet } = req.body;
+    const image = 'https://static.vecteezy.com/system/resources/previews/005/544/753/non_2x/profile-icon-design-free-vector.jpg';
 
-    conn.query('INSERT INTO users_lotto (name,surname,email ,password,phone,wallet,type) VALUES (?, ?,?,?,?,?,?)',
-        [name, surname, email, password, phone, wallet, "user"],
+    conn.query('INSERT INTO users_lotto (name, surname, email, password, phone, wallet, type, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [name, surname, email, password, phone, wallet, 'user', image],
         function (err, result) {
             if (err) {
                 res.json({ message: err });
-                return
+                return;
             }
             res.json({ message: 'ok' });
         }
