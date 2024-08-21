@@ -333,21 +333,20 @@ router.post('/update-wallet/:uid/:lottoid', (req, res) => {
                 return res.status(400).json({ error: 'Update query error' });
             }
 
-            // อัปเดตสถานะใน numbers_lotto
-            const updateStatusQuery = `
-                UPDATE numbers_lotto 
-                SET status = 'ขึ้นเงินแล้ว' 
+            // ลบแถวจาก numbers_lotto ที่มี lottoid ที่รับมา
+            const deleteLottoQuery = `
+                DELETE FROM numbers_lotto 
                 WHERE lottoid = ?
             `;
             
-            conn.query(updateStatusQuery, [lottoid], (err) => {
+            conn.query(deleteLottoQuery, [lottoid], (err) => {
                 if (err) {
-                    console.log('Error updating status:', err);
-                    return res.status(400).json({ error: 'Status update query error' });
+                    console.log('Error deleting lotto record:', err);
+                    return res.status(400).json({ error: 'Delete query error' });
                 }
 
                 res.status(200).json({
-                    message: 'Wallet and status updated successfully',
+                    message: 'Wallet updated and lotto record deleted successfully',
                     newWallet
                 });
             });
