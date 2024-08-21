@@ -4,11 +4,27 @@ var conn = require('../dbconnect')
 
 module.exports = router;
 
-router.post("/insertnumber", (req,res) => {
-    conn.query('INSERT INTO `numbers_lotto` (`number`) VALUES (?)',
-        [req.body.number],
-        function(err,result){
-            res.json(result);
+router.post("/insertnumber", (req, res) => {
+    // สร้างฟังก์ชันสำหรับสุ่มเลข 6 หลัก
+    function getRandomNumber() {
+        return Math.floor(100000 + Math.random() * 900000); // สุ่มเลข 6 หลัก
+    }
+
+    // เตรียม Array สำหรับเก็บเลขที่สุ่มได้
+    const numbers = [];
+    for (let i = 0; i < 100; i++) {
+        numbers.push([getRandomNumber()]);
+    }
+
+    // ใช้การ query แบบ bulk insert เพื่อนำเลขที่สุ่มได้เข้า database
+    conn.query('INSERT INTO `numbers_lotto` (`number`) VALUES ?',
+        [numbers],
+        function(err, result) {
+            if (err) {
+                res.status(500).json({ error: err.message });
+            } else {
+                res.json(result);
+            }
         }
     );
 });
