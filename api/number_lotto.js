@@ -30,18 +30,23 @@ router.post("/insertnumber", (req, res) => {
 });
 
 router.delete("/deletenumber", (req, res) => {
-    const deleteQuery = `
-        DELETE FROM numbers_lotto;
-        DELETE FROM users_lotto WHERE type != 'admin';
-    `;
-
-    conn.query(deleteQuery, (err, result) => {
+    // ลบข้อมูลจากตาราง numbers_lotto
+    conn.query('DELETE FROM numbers_lotto', (err, result) => {
         if (err) {
             console.error(err);
-            res.status(500).json({ error: "An error occurred while deleting records" });
-        } else {
-            res.status(200).json({ message: "Delete successfully from both tables" });
+            return res.status(500).json({ error: "An error occurred while deleting records from numbers_lotto" });
         }
+
+        // ลบข้อมูลจากตาราง users_lotto โดยไม่ลบข้อมูลที่ type เป็น 'admin'
+        conn.query("DELETE FROM users_lotto WHERE type != 'admin'", (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: "An error occurred while deleting records from users_lotto" });
+            }
+
+            // หากลบข้อมูลจากทั้งสองตารางสำเร็จ
+            res.status(200).json({ message: "Delete successfully from both tables" });
+        });
     });
 });
 
