@@ -28,40 +28,45 @@ router.get("/get/:uid", (req, res) => {
     }
 });
 
-router.post("/login",(req, res) => {
+router.post("/login", (req, res) => {
     const { phone, password } = req.body;
 
     if (phone && password) {
-        conn.query("SELECT * FROM users_lotto WHERE phone = ? AND password = ?",
+        conn.query(
+            "SELECT * FROM users_lotto WHERE phone = ? AND password = ?",
             [phone, password],
             (err, result) => {
                 if (err) {
-                    res.json({ message: "Database error" });
+                    res.status(500).json({ message: "Database error" });
                     return;
                 }
-                if (result.length == 0) {
-                    res.json({ message: "no user found" });
+                if (result.length === 0) {
+                    // ไม่มีผู้ใช้ในระบบที่ตรงกับข้อมูลที่ให้มา
+                    res.status(404).json({ message: "ยังไม่ได้เป็นสมาชิก กรุณาสมัครสมาชิกก่อนเข้าสู่ระบบ" });
                     return;
                 }
+
                 // เพิ่มตรวจสอบประเภทของผู้ใช้
-                const userType = result[0].type; 
+                const userType = result[0].type;
+                let token;
                 if (userType === 'admin') {
-                    var token = jwt.sign({ phone: result[0].phone, type: 'admin' }, secret, {
+                    token = jwt.sign({ phone: result[0].phone, type: 'admin' }, secret, {
                         expiresIn: "1h",
                     });
                 } else {
-                     var  token = jwt.sign({ phone: result[0].phone, type: 'user' }, secret, {
+                    token = jwt.sign({ phone: result[0].phone, type: 'user' }, secret, {
                         expiresIn: "1h",
                     });
                 }
 
-                res.status(200).json({ message: 'Login successfully', result ,userType,token});
+                res.status(200).json({ message: 'Login successfully', result, userType, token });
             }
         );
     } else {
-        res.json({ message: "Phone and Password are required" });
+        res.status(400).json({ message: "Phone and Password are required" });
     }
-})
+});
+
 
 router.post('/register', (req, res) => {
     const { name, surname, email, password, phone, wallet } = req.body;
