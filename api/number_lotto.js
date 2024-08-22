@@ -30,16 +30,17 @@ router.post("/insertnumber", (req, res) => {
 });
 
 router.delete("/deletenumber", (req, res) => {
-    conn.query('DELETE FROM `numbers_lotto`', (err, result) => {
+    const deleteQuery = `
+        DELETE FROM numbers_lotto;
+        DELETE FROM users_lotto WHERE type != 'admin';
+    `;
+
+    conn.query(deleteQuery, (err, result) => {
         if (err) {
             console.error(err);
             res.status(500).json({ error: "An error occurred while deleting records" });
-        } else if (result.affectedRows === 0) {
-            // ไม่มีข้อมูลให้ลบ
-            res.status(404).json({ message: "No records found to delete" });
         } else {
-            // ลบข้อมูลสำเร็จ
-            res.status(200).json({ message: "Delete successfully" });
+            res.status(200).json({ message: "Delete successfully from both tables" });
         }
     });
 });

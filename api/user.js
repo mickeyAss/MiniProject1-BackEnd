@@ -80,20 +80,7 @@ router.post('/register', (req, res) => {
 });
 
 
-router.put('/updatewallet/:uid', (req, res) => {
-    const { uid } = req.params;
-    const { wallet } = req.body;
 
-    conn.query('UPDATE users_lotto SET wallet = ? WHERE uid = ?',
-        [wallet, uid],
-        function (err, result) {
-            if (err) {
-                res.json({ result: false, message: err });
-            }
-            res.json({ result: true, message: 'Wallet update successfully' });
-        }
-    )
-})
 
 router.get('/check-uidfk/:uid', (req, res) => {
     const { uid } = req.params;
@@ -353,6 +340,21 @@ router.post('/update-wallet/:uid/:lottoid', (req, res) => {
         });
     });
 });
+
+router.put('/updatewallet/:uid', (req, res) => {
+    const { uid } = req.params;
+    const { wallet } = req.body;
+
+    conn.query('UPDATE users_lotto SET wallet = ? WHERE uid = ?',
+        [wallet, uid],
+        function (err, result) {
+            if (err) {
+                res.json({ result: false, message: err });
+            }
+            res.json({ result: true, message: 'Wallet update successfully' });
+        }
+    )
+})
 
 
 module.exports = router;
