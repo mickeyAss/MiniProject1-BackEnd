@@ -377,6 +377,11 @@ router.post('/deduct-wallet/:uid', (req, res) => {
         return res.status(400).json({ error: 'Password is required' });
     }
 
+    // ตรวจสอบว่า wallet ที่ต้องการหักเงินไม่ใช่ค่าติดลบหรือศูนย์
+    if (parseFloat(wallet) <= 0) {
+        return res.status(400).json({ error: 'Invalid wallet value. The deduction amount must be greater than zero.' });
+    }
+
     // ดึงค่า wallet และ password ปัจจุบันจากฐานข้อมูล
     const getUserQuery = `
         SELECT wallet, password 
