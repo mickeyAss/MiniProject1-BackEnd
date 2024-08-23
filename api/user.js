@@ -363,7 +363,7 @@ router.put('/updatewallet/:uid', (req, res) => {
 
 router.post('/deduct-wallet/:uid', (req, res) => {
     const { uid } = req.params;
-    const { wallet } = req.body;
+    const { wallet, password } = req.body;
 
     if (!uid) {
         return res.status(400).json({ error: 'Uid parameter is required' });
@@ -373,16 +373,20 @@ router.post('/deduct-wallet/:uid', (req, res) => {
         return res.status(400).json({ error: 'Wallet parameter is required in request body' });
     }
 
-    // ดึงค่า wallet ปัจจุบันจากฐานข้อมูล
-    const getWalletQuery = `
-        SELECT wallet 
+    if (!password) {
+        return res.status(400).json({ error: 'Password is required' });
+    }
+
+    // ดึงค่า wallet และ password ปัจจุบันจากฐานข้อมูล
+    const getUserQuery = `
+        SELECT wallet, password 
         FROM users_lotto 
         WHERE uid = ?
     `;
     
-    conn.query(getWalletQuery, [uid], (err, result) => {
+    conn.query(getUserQuery, [uid], (err, result) => {
         if (err) {
-            console.log('Error fetching wallet:', err);
+            console.log('Error fetching user data:', err);
             return res.status(400).json({ error: 'Query error' });
         }
         if (result.length === 0) {
@@ -390,6 +394,13 @@ router.post('/deduct-wallet/:uid', (req, res) => {
         }
 
         const currentWallet = parseFloat(result[0].wallet);
+        const storedPassword = result[0].password;
+
+        // ตรวจสอบว่ารหัสผ่านตรงกันหรือไม่
+        if (password !== storedPassword) {
+            return res.status(401).json({ error: 'Incorrect password' });
+        }
+
         const newWallet = currentWallet - parseFloat(wallet);
 
         if (newWallet < 0) {
