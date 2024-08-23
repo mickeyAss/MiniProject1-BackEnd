@@ -301,3 +301,24 @@ router.put('/update-uid-fk', (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 });
+
+router.get('/get-first', (req, res) => {
+    const query = `
+        SELECT * 
+        FROM numbers_lotto 
+        WHERE result IN ('รางวัลที่ 1', 'รางวัลที่ 2', 'รางวัลที่ 3', 'รางวัลที่ 4', 'รางวัลที่ 5')
+    `;
+
+    conn.query(query, (err, results) => {
+        if (err) {
+            console.log('Error fetching data:', err);
+            return res.status(500).json({ error: 'Database query error' });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'No matching records found' });
+        }
+
+        res.status(200).json(results);
+    });
+});
