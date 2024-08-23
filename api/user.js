@@ -435,8 +435,8 @@ router.post('/deduct-wallet/:uid', (req, res) => {
 
 router.post('/add-wallet/:uid', (req, res) => {
     const { uid } = req.params; // รับ uid จากพาธ
-    const { wallet } = req.body; 
-    
+    const { wallet, password } = req.body; // รับ wallet และ password จาก body
+
     if (wallet === undefined || wallet === null) {
         return res.status(400).json({ error: 'Wallet is required' });
     }
@@ -445,16 +445,16 @@ router.post('/add-wallet/:uid', (req, res) => {
         return res.status(400).json({ error: 'Wallet must be greater than zero' });
     }
 
-    // ดึงค่า wallet ปัจจุบันจากฐานข้อมูล
-    const getWalletQuery = `
-        SELECT wallet 
+    // ดึงค่า wallet และรหัสผ่านจากฐานข้อมูล
+    const getWalletAndPasswordQuery = `
+        SELECT wallet, password 
         FROM users_lotto 
         WHERE uid = ?
     `;
     
-    conn.query(getWalletQuery, [uid], (err, result) => {
+    conn.query(getWalletAndPasswordQuery, [uid], (err, result) => {
         if (err) {
-            console.log('Error fetching wallet:', err);
+            console.log('Error fetching wallet and password:', err);
             return res.status(500).json({ error: 'Query error' });
         }
         if (result.length === 0) {
@@ -462,6 +462,13 @@ router.post('/add-wallet/:uid', (req, res) => {
         }
 
         const currentWallet = parseFloat(result[0].wallet); // ดึง wallet เดิมจากฐานข้อมูล
+        const storedPassword = result[0].password; // ดึงรหัสผ่านจากฐานข้อมูล
+
+        // ตรวจสอบว่ารหัสผ่านที่รับมาตรงกับรหัสผ่านที่เก็บไว้ในฐานข้อมูลหรือไม่
+        if (password !== storedPassword) {
+            return res.status(401).json({ error: 'Incorrect password' });
+        }
+
         const newWallet = currentWallet + parseFloat(wallet); // รวมกับจำนวนที่รับมา
 
         // อัปเดต wallet ใหม่ในฐานข้อมูล
