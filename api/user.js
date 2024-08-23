@@ -361,5 +361,61 @@ router.put('/updatewallet/:uid', (req, res) => {
     )
 })
 
+router.post('/deduct-wallet/:uid', (req, res) => {
+    const { uid } = req.params;
+    const { wallet } = req.body;
+
+    if (!uid) {
+        return res.status(400).json({ error: 'Uid parameter is required' });
+    }
+
+    if (wallet === undefined || wallet === null) {
+        return res.status(400).json({ error: 'Wallet parameter is required in request body' });
+    }
+
+    // ดึงค่า wallet ปัจจุบันจากฐานข้อมูล
+    const getWalletQuery = `
+        SELECT wallet 
+        FROM users_lotto 
+        WHERE uid = ?
+    `;
+    
+    conn.query(getWalletQuery, [uid], (err, result) => {
+        if (err) {
+            console.log('Error fetching wallet:', err);
+            return res.status(400).json({ error: 'Query error' });
+        }
+        if (result.length === 0) {
+            return res.status(404).json({ message: 'No user found with the given uid' });
+        }
+
+        const currentWallet = parseFloat(result[0].wallet);
+        const newWallet = currentWallet - parseFloat(wallet);
+
+        if (newWallet < 0) {
+            return res.status(400).json({ error: 'Insufficient balance' });
+        }
+
+        // อัปเดต wallet ใหม่ในฐานข้อมูล
+        const updateWalletQuery = `
+            UPDATE users_lotto 
+            SET wallet = ? 
+            WHERE uid = ?
+        `;
+        
+        conn.query(updateWalletQuery, [newWallet, uid], (err) => {
+            if (err) {
+                console.log('Error updating wallet:', err);
+                return res.status(400).json({ error: 'Update query error' });
+            }
+
+            res.status(200).json({
+                message: 'Wallet deducted successfully',
+                newWallet
+            });
+        });
+    });
+});
+
 
 module.exports = router;
