@@ -29,12 +29,12 @@ router.get("/get/:uid", (req, res) => {
 });
 
 router.post("/login", (req, res) => {
-    const { phone, password } = req.body;
+    const { email, password } = req.body;
 
-    if (phone && password) {
+    if (email && password) {
         conn.query(
-            "SELECT * FROM users_lotto WHERE phone = ? AND password = ?",
-            [phone, password],
+            "SELECT * FROM users_lotto WHERE email = ? AND password = ?",
+            [email, password],
             (err, result) => {
                 if (err) {
                     res.status(500).json({ message: "Database error" });
@@ -50,11 +50,11 @@ router.post("/login", (req, res) => {
                 const userType = result[0].type;
                 let token;
                 if (userType === 'admin') {
-                    token = jwt.sign({ phone: result[0].phone, type: 'admin' }, secret, {
+                    token = jwt.sign({ email: result[0].email, type: 'admin' }, secret, {
                         expiresIn: "1h",
                     });
                 } else {
-                    token = jwt.sign({ phone: result[0].phone, type: 'user' }, secret, {
+                    token = jwt.sign({ email: result[0].email, type: 'user' }, secret, {
                         expiresIn: "1h",
                     });
                 }
@@ -63,7 +63,7 @@ router.post("/login", (req, res) => {
             }
         );
     } else {
-        res.status(400).json({ message: "Phone and Password are required" });
+        res.status(400).json({ message: "Email and Password are required" });
     }
 });
 
