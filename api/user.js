@@ -72,16 +72,29 @@ router.post('/register', (req, res) => {
     const { name, surname, email, password, phone, wallet } = req.body;
     const image = 'https://static.vecteezy.com/system/resources/previews/005/544/753/non_2x/profile-icon-design-free-vector.jpg';
 
-    conn.query('INSERT INTO users_lotto (name, surname, email, password, phone, wallet, type, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [name, surname, email, password, phone, wallet, 'user', image],
-        function (err, result) {
-            if (err) {
-                res.json({ message: err });
-                return;
-            }
-            res.json({ message: 'ok' });
+    // ตรวจสอบว่าอีเมลซ้ำหรือไม่
+    conn.query('SELECT * FROM users_lotto WHERE email = ?', [email], function (err, results) {
+        if (err) {
+            res.json({ message: err });
+            return;
         }
-    );
+        if (results.length > 0) {
+            res.json({ message: 'Email already exists' });
+            return;
+        }
+
+        // ถ้าไม่ซ้ำ ให้ทำการเพิ่มข้อมูลลงในฐานข้อมูล
+        conn.query('INSERT INTO users_lotto (name, surname, email, password, phone, wallet, type, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [name, surname, email, password, phone, wallet, 'user', image],
+            function (err, result) {
+                if (err) {
+                    res.json({ message: err });
+                    return;
+                }
+                res.json({ message: 'ok' });
+            }
+        );
+    });
 });
 
 
